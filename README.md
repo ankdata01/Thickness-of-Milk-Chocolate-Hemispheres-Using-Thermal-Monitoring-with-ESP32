@@ -2,20 +2,64 @@
 
 ## Short Description
 
-This repository contains the firmware and Python analysis script used for an Experimental Design project focused on measuring silicone mold temperature during the preparation of milk chocolate hemispheres.
+This repository contains the firmware, curated data generation script, statistical analysis script, plots, and deliverable evidence for an Experimental Design project focused on measuring silicone mold temperature during the preparation of milk chocolate hemispheres.
 
-The system uses an ESP32, a MAX6675 thermocouple module, and a K-type thermocouple to monitor mold temperature. The recovered measurements are analyzed with Python to calculate statistical variation and generate plots.
+The system uses an ESP32, a MAX6675 thermocouple module, and a K-type thermocouple to monitor mold temperature. The recovered measurements from six circuit tests are processed with Python to calculate statistical variation and generate comparative plots.
+
+## Selected Experimental System
+
+Temperature Controller / ESP32 Thermal Monitoring System.
+
+The experimental unit is the silicone mold and chocolate-forming process under a defined temperature condition. The sampling unit is each temperature reading recovered from the ESP32 thermal monitoring circuit.
+
+## Repository Structure
+
+```text
+.
+├── data/
+│   ├── raw/
+│   │   └── mediciones_curadas_6_muestras.csv
+│   │
+│   └── processed/
+│       ├── estadisticas_por_muestra.csv
+│       ├── estadisticas_total.csv
+│       └── figures/
+│           ├── 01_temperatura_por_muestra.png
+│           ├── 02_medias_por_muestra.png
+│           ├── 03_varianza_por_muestra.png
+│           ├── 04_boxplot_dispersion.png
+│           └── 05_histograma_total.png
+│
+├── firmware/
+│   └── control_temperatura_molde_chocolate_final.ino
+│
+├── media/
+│   └── video_link.txt
+│
+├── report/
+│   └── final_report.pdf
+│
+├── generate_measurement_csv.py
+├── ss_analysis.py.py
+├── README.md
+├── requirements.txt
+├── LICENSE
+└── .gitignore
+```
 
 ## Main Files
 
 ```text
 control_temperatura_molde_chocolate_final.ino
-ss_analysis.py
+generate_measurement_csv.py
+ss_analysis.py.py
 ```
 
-The `.ino` file contains the ESP32 firmware for the thermal monitoring circuit.
+The `.ino` file contains the ESP32 firmware used for the thermal monitoring circuit.
 
-The `.py` file analyzes the curated temperature data obtained from Serial Monitor captures and generates statistical summaries and plots.
+The `generate_measurement_csv.py` file reconstructs the curated CSV files from the six circuit tests used in the experiment.
+
+The `ss_analysis.py.py` file analyzes the curated temperature data, calculates descriptive statistics, and generates the final plots.
 
 ## Hardware System
 
@@ -35,7 +79,7 @@ Jumper wires
 Silicone mold for milk chocolate hemispheres
 ```
 
-## ESP32 Circuit Pinout
+## Circuit Pinout
 
 ```text
 MAX6675 VCC  -> ESP32 3V3
@@ -50,17 +94,19 @@ Green LED    -> ESP32 GPIO27
 Blue LED     -> ESP32 GPIO25
 ```
 
-All electronic modules must share the same GND reference.
+All electronic modules must share the same GND reference. If another ESP32 pin configuration is used, the pin constants must be updated in the firmware file.
 
-## Firmware File
+## Firmware Description
+
+The firmware file is located in:
 
 ```text
-control_temperatura_molde_chocolate_final.ino
+firmware/control_temperatura_molde_chocolate_final.ino
 ```
 
-This firmware reads the temperature from the K-type thermocouple through the MAX6675 module. The ESP32 classifies the mold temperature condition, activates the corresponding LED indicator, and prints the measurements through the Serial Monitor.
+The firmware reads the mold temperature through the MAX6675 thermocouple module. The ESP32 classifies the mold temperature condition, activates the corresponding LED indicator, and prints the measurements through the Serial Monitor.
 
-The firmware works in safe monitoring mode by default. In this mode, the relay remains OFF to avoid activating any high-voltage heating device during the experimental measurement stage.
+The relay remains OFF during the experimental monitoring stage to keep the system in safe measurement mode.
 
 Expected serial output format:
 
@@ -79,35 +125,50 @@ LED interpretation:
 ```text
 Blue LED  -> Cold mold or thermal recovery
 Green LED -> Ambient or safe temperature zone
-Red LED   -> Hot container, warning, or safety condition
+Red LED   -> Hot mold, warning, or safety condition
 ```
 
-## Python Analysis File
+## Data Generation Script
+
+The CSV generation script is:
 
 ```text
-ss_analysis.py
+generate_measurement_csv.py
 ```
 
-This Python script does not require running the experiment again. It works with a curated CSV file created from the Serial Monitor captures.
+This script generates the curated data files from the six temperature tests performed with the ESP32 circuit. Each test contains 10 temperature measurements.
 
-Expected input file:
+Run:
+
+```bash
+python generate_measurement_csv.py
+```
+
+Generated files:
 
 ```text
+data/raw/mediciones_curadas_6_muestras.csv
 data/mediciones_curadas_6_muestras.csv
+data/processed/estadisticas_por_muestra.csv
+data/processed/estadisticas_total.csv
 ```
 
-The CSV must include the following columns:
+The additional copy in `data/mediciones_curadas_6_muestras.csv` is included for compatibility with the analysis script.
+
+## Statistical Analysis Script
+
+The analysis script is:
 
 ```text
-muestra
-punto
-tiempo_visible
-millis
-temperatura_C
-estado
-relevador
-archivo_fuente
-nota
+ss_analysis.py.py
+```
+
+This script works with the curated CSV file and generates statistical summaries and plots.
+
+Run:
+
+```bash
+python ss_analysis.py.py
 ```
 
 The script calculates:
@@ -126,6 +187,16 @@ Interquartile range
 Coefficient of variation
 ```
 
+It also generates the following plots:
+
+```text
+01_temperatura_por_muestra.png
+02_medias_por_muestra.png
+03_varianza_por_muestra.png
+04_boxplot_dispersion.png
+05_histograma_total.png
+```
+
 ## Python Requirements
 
 Install the required libraries with:
@@ -134,7 +205,7 @@ Install the required libraries with:
 pip install -r requirements.txt
 ```
 
-The `requirements.txt` file should contain:
+The `requirements.txt` file contains:
 
 ```text
 numpy
@@ -142,49 +213,68 @@ pandas
 matplotlib
 ```
 
-## How to Run the Analysis
+## How to Reproduce the Analysis
 
-Run the script with the default input and output paths:
-
-```bash
-python ss_analysis.py
-```
-
-Or specify the input CSV and output folder manually:
+First, install the dependencies:
 
 ```bash
-python ss_analysis.py --csv data/mediciones_curadas_6_muestras.csv --out resultados
+pip install -r requirements.txt
 ```
 
-## Output Files
+Then generate the CSV files:
 
-The script generates the following files inside the output folder:
-
-```text
-resultados/datos_usados_para_analisis.csv
-resultados/estadisticas_por_muestra.csv
-resultados/estadisticas_total.csv
-resultados/notas_de_calidad.txt
-resultados/01_temperatura_por_muestra.png
-resultados/02_medias_por_muestra.png
-resultados/03_varianza_por_muestra.png
-resultados/04_boxplot_dispersion.png
-resultados/05_histograma_total.png
+```bash
+python generate_measurement_csv.py
 ```
 
-## Data Analysis Purpose
+Finally, run the statistical analysis and plot generation:
 
-The analysis compares the temperature behavior of the silicone mold across different chocolate-forming samples. The statistical results are used to quantify measurement variation and evaluate how mold temperature affects the final thickness, shine, surface finish, and visible imperfections of the milk chocolate hemispheres.
+```bash
+python ss_analysis.py.py
+```
+
+## Experimental Data
+
+The project analyzes six temperature measurement tests from the ESP32 thermal monitoring circuit. Each sample contains 10 temperature readings from the silicone mold.
+
+The purpose of the analysis is to quantify the variation in mold temperature and evaluate how thermal behavior may affect the thickness, shine, surface finish, and visible imperfections of milk chocolate hemispheres.
 
 ## Deliverables
 
-Final PDF report: included separately in the project submission.
+Final PDF report:
 
-YouTube video evidence: included as a public video link in the project submission.
+```text
+report/final_report.pdf
+```
 
-Firmware source code: `control_temperatura_molde_chocolate_final.ino`
+YouTube video evidence:
 
-Python analysis source code: `ss_analysis.py`
+```text
+media/video_link.txt
+```
+
+Firmware source code:
+
+```text
+firmware/control_temperatura_molde_chocolate_final.ino
+```
+
+Python source code:
+
+```text
+generate_measurement_csv.py
+ss_analysis.py.py
+```
+
+Curated and processed data:
+
+```text
+data/
+```
+
+## Project Objective
+
+Quantify the effect of silicone mold temperature on the quality, thickness, and surface finish of milk chocolate hemispheres by using ESP32-based thermal monitoring and Python statistical analysis.
 
 ## Course Information
 
@@ -192,3 +282,4 @@ Course: Experimental Design
 Period: 2026A
 System: ESP32 Thermal Monitoring System
 Application: Milk Chocolate Hemisphere Mold Temperature Analysis
+
