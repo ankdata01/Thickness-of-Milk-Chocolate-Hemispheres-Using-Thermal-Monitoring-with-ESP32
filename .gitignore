@@ -1,0 +1,15 @@
+﻿.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Experimental outputs (do not track)
+data/raw/*.csv
+data/processed/*.txt
+media/figures/*.png
